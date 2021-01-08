@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Launch GenerateTimeCards",
+            "request": "launch",
+            "mainClass": "GenerateTimeCards",
+            "args": "./jon.csv 01-01-20 01-19-20 0",
+            "projectName": "payroll_c0cf3349"
+        }
+    ]
+}

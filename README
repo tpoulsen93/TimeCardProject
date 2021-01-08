@@ -1,0 +1,16 @@
+Payroll Time Card Generator
+
+Author: Taylor Poulsen
+Date: January 2021
+
+This program takes a specifically formatted excel spreadsheet and converts
+it into a csv to then be parsed and generate a timecard textfile. This text
+file will then be parsed again to broken up into messages of 160 characters
+or less (text message rules) and then automatically sent to the appropriate
+recipients.
+
+
+Dependencies:
+	xlsx2csv
+	java jre
+	
