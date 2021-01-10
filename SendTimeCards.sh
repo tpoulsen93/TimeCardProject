@@ -78,13 +78,13 @@ fi
     base64 $timeCard >> $b64temp
 
     #send the timecard and delete the base64 file
-    sendmail $email < $b64temp
+    ssmtp $email < $b64temp
     rm -f $b64temp
     echo "A time card was sent to $name"
 
     #send text message alerting recipient that their timecard has been sent
-    echo "Your time card for the pay period starting on $startDate has been sent to $email" | sendmail $phone
-    echo "Direct Deposit will be scheduled for $payDay" | sendmail $phone
-    echo "If you see any errors, or have any questions, please text me at 208-350-0006" | sendmail $phone
+    echo "Your time card for the pay period starting on $startDate has been sent to $email" | ssmtp $phone
+    echo "Direct Deposit will be scheduled for $payDay" | ssmtp $phone
+    echo "If you see any errors, or have any questions, please text me at 208-350-0006" | ssmtp $phone
     echo "$name was alerted via text message"
 done

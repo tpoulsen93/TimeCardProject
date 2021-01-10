@@ -5,10 +5,19 @@
 
 echo "compile java code..."
 echo
-javac TimeCard.java GenerateTimeCards.java
+javac *.java
+echo
 
-echo "install program to convert excel spreadsheet to csv..."
+echo "install xlsx2csv to convert excel spreadsheet to csv..."
 echo
 sudo apt-get install xlsx2csv
+echo
 
-echo "Should be ready to rumble.... I hope..."
+echo "install sendmail to send texts and emails"
+echo
+sudo apt-get install ssmtp
+echo
+
+echo
+echo "Look up how to configure ssmtp and do it."
+echo "Then you should be ready to rumble.... I hope..."
