@@ -15,13 +15,21 @@ fi
 #these 2 variables are hardcoded and will have to be updated from time to time
 
 #add the actual address of the file here, will have to be updated once per year
-spreadSheet=~/windows/Payroll_2021.lnk 
+spreadSheet=../Payroll_2021.xlsx
 #employee count will have to change each time employees are added or lost...
 eCount=2
 
-startDate=$1                #the start date of the payroll to be computed
-payDay=$2                   #the date of the payday
-csv=$payDay/tmp.csv         #name of temporary csv file that will be overwritten over and over during program execution
+startDate=$1    #the start date of the payroll to be computed
+payDay=$2       #the date of the payday
+
+#make a directory for copies of all of the TimeCards
+directory=../TimeCards/$payDay
+if [ -e $directory ]; then
+    rm -fr $directory
+fi
+mkdir $directory
+
+csv=$directory/tmp.csv  #name of temporary csv file that will be overwritten over and over during program execution
 
 if [ $# -gt 2 ]; then   #if pay period length isn't provided, default is 7
     payPeriodLength=$3
@@ -31,16 +39,10 @@ fi
 
 b64temp=base64_template.txt
 
-#make a directory for copies of all of the TimeCards
-if [ -e $payDay ]; then
-    rm -fr $payDay
-fi
-mkdir $payDay
-
 #loop through the sheets creating temporary csv's, generating time cards, and sending them
 for (( i=1; i<( $eCount + 1 ); i++ ))
 do
-    timeCard=$payDay/TimeCard_$i.txt
+    timeCard=$directory/TimeCard_$i.txt
     #generate the template for the base64
 if [ ! -e $b64temp ]; then
     echo "Content-Type: application;" >> $b64temp
