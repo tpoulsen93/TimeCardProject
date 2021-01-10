@@ -125,7 +125,7 @@ public class TimeCard {
         if (line[NOTES] == null)
             line[NOTES] = "";
             
-        return String.format("| %-9s| %-10s|%6s |%6s | %s\n", line[DATE], line[DAY], line[HOURS], currency(line[DRAWS]), line[NOTES]);
+        return String.format("%-9s| %-4s|%6s |%6s | %s\n", line[DATE], line[DAY], line[HOURS], currency(line[DRAWS]), line[NOTES]);
     }
 
 
