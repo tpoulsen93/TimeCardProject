@@ -8,15 +8,16 @@
 #Print usage if incorrect # of arguments provided
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
     echo Usage:   $0 '<start date> <payday> [<# of days in pay period>]'
-    echo Date format: mm-dd-yy
-    exit 1
+    echo "Input 0 if no input required.   Date format: mm-dd-yy"
+    exit 0
 fi
 
-#these 2 variables are hardcoded and will have to be updated from time to time using the updateHardcodedVariables script
+#these 2 variables are hardcoded and will have to be updated from time to time
+
 #add the actual address of the file here, will have to be updated once per year
-spreadSheet=~/payroll/Book1.xlsx  
+spreadSheet=~/windows/Payroll_2021.lnk 
 #employee count will have to change each time employees are added or lost...
-eCount=1                            
+eCount=2
 
 startDate=$1                #the start date of the payroll to be computed
 payDay=$2                   #the date of the payday
@@ -25,11 +26,10 @@ csv=$payDay/tmp.csv         #name of temporary csv file that will be overwritten
 if [ $# -gt 2 ]; then   #if pay period length isn't provided, default is 7
     payPeriodLength=$3
 else
-    payPeriodLength=0
+    payPeriodLength=7
 fi
 
 b64temp=base64_template.txt
-
 
 #make a directory for copies of all of the TimeCards
 if [ -e $payDay ]; then
@@ -56,7 +56,7 @@ fi
         java GenerateTimeCards $csv $startDate $payDay $payPeriodLength > $timeCard
         rm -f $csv
     else
-        echo No csv found.
+        echo Error: No csv found.
         exit 1
     fi
 
@@ -78,13 +78,13 @@ fi
     base64 $timeCard >> $b64temp
 
     #send the timecard and delete the base64 file
-    sendmail $email < $b64temp
+    ssmtp $email < $b64temp
     rm -f $b64temp
     echo "A time card was sent to $name"
 
     #send text message alerting recipient that their timecard has been sent
-    echo "Your time card for the pay period starting on $startDate has been sent to $email" | sendmail $phone
-    echo "Direct Deposit will be scheduled for $payDay" | sendmail $phone
-    echo "If you see any errors, or have any questions, please text me at 208-350-0006" | sendmail $phone
+    echo "Your time card for the pay period starting on $startDate has been sent to $email" | ssmtp $phone
+    echo "Direct Deposit will be scheduled for $payDay" | ssmtp $phone
+    echo "If you see any errors, or have any questions, please text me at 208-350-0006" | ssmtp $phone
     echo "$name was alerted via text message"
 done
