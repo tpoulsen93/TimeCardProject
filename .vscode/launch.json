@@ -15,7 +15,7 @@
             "name": "Launch GenerateTimeCards",
             "request": "launch",
             "mainClass": "GenerateTimeCards",
-            "args": "./jon.csv 01-01-20 01-19-20 0",
+            "args": "./bob.csv 01-04-21 01-19-21 0",
             "projectName": "payroll_c0cf3349"
         }
     ]

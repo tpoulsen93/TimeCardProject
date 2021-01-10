@@ -6,10 +6,10 @@ import java.util.Scanner;
 public class TimeCard {
 
     private static DecimalFormat df = new DecimalFormat("##,###.##");
-    private final short DATE = 0, DAY = 1, HOURS = 2, DRAWS = 3;    //constant indexes of each element of each line
-    private final short MAX_COLUMNS = 4;
+    private final short DATE = 0, DAY = 1, HOURS = 2, DRAWS = 3, NOTES = 4;    //constant indexes of each element of each line
+    private final short MAX_COLUMNS = 5;
     private float totalHours, totalDraws, grossPay, wage;
-    private String timeCardString, name, phone, start, pday;
+    private String timeCardString, name, phone, email, start, pday;
     private short missedDays, period;
 
 
@@ -23,6 +23,7 @@ public class TimeCard {
         timeCardString = "";
         name = "";
         phone = "";
+        email = "";
         start = startDate;
         pday = payDay;
         period = Short.parseShort(payPeriodLength);
@@ -45,17 +46,18 @@ public class TimeCard {
         name = currentLine[0];
         wage = Float.parseFloat(currentLine[1]);
         phone = currentLine[2];
+        email = currentLine[3];
 
 
         //get headings for timeCardString
         timeCardString += buildTCHeader(); //top line with name, wage, payday
         currentLine = parseLine(scan.nextLine());
-        timeCardString += buildTCLine(currentLine); //second line with headings for columns
+        timeCardString += buildTCLine(currentLine).replace('$', ' '); //second line with column headings
 
         //begin searching for startDate
         while (!currentDate.equals(start))
         {   
-            //first line contains heading titles so nothing gets missed on the first iteration
+            //first line contains column headings so nothing gets missed on the first iteration
             if (scan.hasNextLine())
             {
                 currentLine = parseLine(scan.nextLine());
@@ -114,13 +116,16 @@ public class TimeCard {
 
     private String buildTCHeader()
     {
-        return phone + "\n" + name + "\nPayday: " + pday + "\nWage: " + currency(df.format(wage)) + "/hr\n\n";
-    }   //added an additional space after phone to make sure getPhone.c gets the number cleanly (without grabbing the \n)
+        return phone + "\n" + email + "\n" + name + "\nPayday: " + pday + "\nWage: " + currency(df.format(wage)) + "/hr\n\n";
+    }
 
 
     private String buildTCLine(String[] line)
     {
-        return String.format("|%-9.9s|%-9.9s|%6.6s|%6.7s|\n", line[DATE], line[DAY], line[HOURS], currency(line[DRAWS]));
+        if (line[NOTES] == null)
+            line[NOTES] = "";
+            
+        return String.format("| %-9s| %-10s|%6s |%6s | %s\n", line[DATE], line[DAY], line[HOURS], currency(line[DRAWS]), line[NOTES]);
     }
 
 
@@ -150,29 +155,6 @@ public class TimeCard {
             return "$" + num;
         else 
             return num;
-    }
-/*
-    private String currency(float num)
-    {
-        return "$" + num;
-    }
-
-    private String cleanDecimal(float num)
-    {
-        DecimalFormat df = new DecimalFormat("##,###.##");
-        return df.format(num);
-    }
-
-    private String cleanDecimal(String num)
-    {
-        DecimalFormat df = new DecimalFormat("##,###.##");
-        return df.format(num);
-    }
-*/
-
-    public String getPhone()
-    {
-        return phone;
     }
 
 
