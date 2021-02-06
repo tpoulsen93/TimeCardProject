@@ -33,13 +33,13 @@ csv=$directory/tmp.csv  #temporary csv file that will be overwritten over and ov
 b64temp=base64_template.txt #temporary b64 template that will also be overwritten over and over during execution
 
 #get timecard recipients from user input
-read -p "Enter names timecard recipients seperated by spaces: " -a employeeArray
+read -p "Enter timecard recipients seperated by spaces: " -a employeeArray
 
 #loop through the sheets creating temporary csv's, generating time cards, and sending them
 for employee in ${employeeArray[@]}
 do
     #get sheet id for each person and initialize their timecard
-    sheetID=$(grep -oP "(?<=$person \[).*(?=\])" employeeSheetIDs.dat)
+    sheetID=$(grep -oP "(?<=$person \[).*(?=\])" employeeSheetIDs.txt)
     timeCard=$directory/TimeCard_$person.txt
 
     #generate the template for the base64
