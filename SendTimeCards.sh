@@ -7,9 +7,9 @@
 
 
 #Print usage if incorrect # of arguments provided
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-    echo Usage:   $0 '<start date> <payday> [<# of days in pay period>]'
-    echo "Input 0 if no input required.   Date format: mm-dd-yy"
+if [ $# -lt 3 ] || [ $# -gt 3 ]; then
+    echo Usage:   $0 '<start date> <payday> <# of days in pay period>'
+    echo "Date format: mm-dd-yy"
     exit 0
 fi
 
