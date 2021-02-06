@@ -5,6 +5,7 @@
 #Purpose: Automate some of my weekly payroll tasks for Poulsen Concrete Contractors
 
 
+
 #Print usage if incorrect # of arguments provided
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
     echo Usage:   $0 '<start date> <payday> [<# of days in pay period>]'
@@ -12,46 +13,44 @@ if [ $# -lt 2 ] || [ $# -gt 3 ]; then
     exit 0
 fi
 
-#these 2 variables are hardcoded and will have to be updated from time to time
 
-#add the actual address of the file here, will have to be updated once per year
+
+#add the actual address of the excel file here, will have to be updated once per year
 spreadSheet=../Payroll_2021.xlsx
-#employee count will have to change each time employees are added or lost...
-eCount=2
 
-startDate=$1    #the start date of the payroll to be computed
-payDay=$2       #the date of the payday
+startDate=$1        #the start date of the payroll to be computed
+payDay=$2           #the date of the payday
+payPeriodLength=$3  #the length of the pay period
 
 #make a directory for copies of all of the TimeCards
 directory=../TimeCards/$payDay
-if [ -e $directory ]; then
-    rm -fr $directory
-fi
-mkdir $directory
-
-csv=$directory/tmp.csv  #name of temporary csv file that will be overwritten over and over during program execution
-
-if [ $# -gt 2 ]; then   #if pay period length isn't provided, default is 7
-    payPeriodLength=$3
-else
-    payPeriodLength=7
+if [ ! -e $directory ]; then
+    mkdir $directory
 fi
 
-b64temp=base64_template.txt
+csv=$directory/tmp.csv  #temporary csv file that will be overwritten over and over during program execution
+
+b64temp=base64_template.txt #temporary b64 template that will also be overwritten over and over during execution
+
+#get timecard recipients from user input
+read -p "Enter names timecard recipients seperated by spaces: " -a employeeArray
 
 #loop through the sheets creating temporary csv's, generating time cards, and sending them
-for (( i=1; i<( $eCount + 1 ); i++ ))
+for employee in ${employeeArray[@]}
 do
-    timeCard=$directory/TimeCard_$i.txt
+    #get sheet id for each person and initialize their timecard
+    sheetID=$(grep -oP "(?<=$person \[).*(?=\])" employeeSheetIDs.dat)
+    timeCard=$directory/TimeCard_$person.txt
+
     #generate the template for the base64
-if [ ! -e $b64temp ]; then
-    echo "Content-Type: application;" >> $b64temp
-    echo "Content-Transfer-Encoding: base64" >> $b64temp
-    echo "Content-Disposition: attachment; filename=\"TimeCard.txt\"" >> $b64temp
-fi
+    if [ ! -e $b64temp ]; then
+        echo "Content-Type: application;" >> $b64temp
+        echo "Content-Transfer-Encoding: base64" >> $b64temp
+        echo "Content-Disposition: attachment; filename=\"TimeCard.txt\"" >> $b64temp
+    fi
 
     #convert the spreadsheet to a csv
-    xlsx2csv -s $i $spreadSheet $csv
+    xlsx2csv -s $sheetID $spreadSheet $csv
 
     #generate timecard from csv
     if [ -e $csv ]; then
