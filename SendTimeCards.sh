@@ -39,8 +39,8 @@ read -p "Enter timecard recipients seperated by spaces: " -a employeeArray
 for employee in ${employeeArray[@]}
 do
     #get sheet id for each person and initialize their timecard
-    sheetID=$(grep -oP "(?<=$person \[).*(?=\])" employeeSheetIDs.txt)
-    timeCard=$directory/TimeCard_$person.txt
+    sheetID=$(grep -oP "(?<=$employee \[).*(?=\])" employeeSheetIDs.txt)
+    timeCard=$directory/TimeCard_$employee.txt
 
     #generate the template for the base64
     if [ ! -e $b64temp ]; then
