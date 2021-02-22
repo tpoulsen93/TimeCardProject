@@ -57,8 +57,9 @@ do
         java GenerateTimeCards $csv $startDate $payDay $payPeriodLength > $timeCard
         rm -f $csv
     else
-        echo Error: No csv found.
-        exit 1
+        echo "Error: No csv found for $employee."
+        echo "Nothing was generated for $employee."
+        continue
     fi
 
     #get info from the first few lines of the timecard
