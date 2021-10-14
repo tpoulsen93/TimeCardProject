@@ -21,3 +21,6 @@ Dependencies:
 	xlsx2csv (convert the excel spreadsheet to a csv)
 	java jre (parse the csv and generate the timeCard)
     ssmtp (send the emails/texts)
+
+To run:
+    ./SendTimeCards.sh
