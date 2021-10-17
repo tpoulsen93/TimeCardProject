@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class TimeCard {
 
-    private static DecimalFormat df = new DecimalFormat("##,###.##");
+    private static DecimalFormat moneyFormat = new DecimalFormat("##,###.##");
     private final short DATE = 0, DAY = 1, HOURS = 2, DRAWS = 3, NOTES = 4;    //constant indexes of each element of each line
     private final short MAX_COLUMNS = 5;
     private float totalHours, totalDraws, grossPay, wage;
@@ -30,7 +30,7 @@ public class TimeCard {
         if (period == 0)
             period = 7; //7 days is the default if 0 is given
 
-        //Fill timecard with information from provided cvs file
+        //Fill timecard with information from provided csv file
         buildTimeCard(csvPath);
     }
 
@@ -72,7 +72,7 @@ public class TimeCard {
         //startDate has been found, begin parsing and calculating
         for (int i = 0; i < period; i++) 
         {
-            if (dayCounter > 16) //this is how I will catch potential endDate error
+            if (dayCounter > 16) //this is how I will catch some potential endDate error
                 errorFound("Pay period was > 15 days. Check arguments.");
             else
                 dayCounter++;
@@ -84,7 +84,7 @@ public class TimeCard {
 
             if (!currentLine[HOURS].equals(""))
             {
-                if (currentLine[HOURS].contains("miss") || currentLine[HOURS].contains("Miss"))
+                if (currentLine[HOURS].toLowerCase().contains("miss"))
                     missedDays++;
                 else
                     totalHours += Float.parseFloat(currentLine[HOURS]);
@@ -98,7 +98,7 @@ public class TimeCard {
         timeCardString += buildTCFooter();
     }
 
-
+    // pull a line out of the csv and put each of its values into a string array
     private String[] parseLine(String line)
     {
         String[] result = new String[MAX_COLUMNS];
@@ -113,37 +113,41 @@ public class TimeCard {
         return result;
     }
 
-
+    // build time card header
     private String buildTCHeader()
     {
-        return phone + "\n" + email + "\n" + name + "\nPayday: " + pday + "\nWage: " + currency(df.format(wage)) + "/hr\n\n";
+        return phone + "\n" + email + "\n" + name + "\nPayday: " + pday + "\nWage: " + currency(moneyFormat.format(wage)) + "/hr\n\n";
     }
 
-
+    // build time card body (line by line)
     private String buildTCLine(String[] line)
     {
-        if (line[NOTES] == null)
-            line[NOTES] = "";
-            
-        return String.format("%-9s| %-4s|%6s |%6s | %s\n", line[DATE], line[DAY], line[HOURS], currency(line[DRAWS]), line[NOTES]);
+        //make sure line[NOTES] isn't null
+        String nts = line[NOTES] == null ? "" : line[NOTES];
+
+        //make sure line[HOURS] doesn't have a rounding error
+        //maximum possible hours for a day should be 5 characters -> ##.##
+        String hrs = line[HOURS].length() > 5 ? line[HOURS].substring(0, 5) : line[HOURS];
+
+        return String.format("%-9s| %-4s|%6s |%6s | %s\n", line[DATE], line[DAY], hrs, currency(line[DRAWS]), nts);
     }
 
-
+    // build time card footer
     private String buildTCFooter()
     {
         String s = "\n";
-        s += ("\nTotal Hours:\t" + df.format(totalHours));
-        s += ("\nTotal Draws:\t" + currency(df.format(totalDraws)));
+        s += ("\nTotal Hours:\t" + moneyFormat.format(totalHours));
+        s += ("\nTotal Draws:\t" + currency(moneyFormat.format(totalDraws)));
 
-        if (missedDays != 0)
+        if (missedDays > 0)
         {
             wage -= missedDays; //adjust wage according to # of missed days
             s += ("\nMissed Days:\t" + missedDays);
-            s += ("\nAdjusted Wage:\t" + currency(df.format(wage)) + "/hr");
+            s += ("\nAdjusted Wage:\t" + currency(moneyFormat.format(wage)) + "/hr");
         }
 
         grossPay = (totalHours * wage) - totalDraws;  //calculate gross pay
-        s += ("\nGross Pay:\t" + currency(df.format(grossPay)));
+        s += ("\nGross Pay:\t" + currency(moneyFormat.format(grossPay)));
 
         return s;
     }
@@ -151,10 +155,7 @@ public class TimeCard {
 
     private String currency(String num)
     {
-        if (!num.equals(""))
-            return "$" + num;
-        else 
-            return num;
+        return num.equals("") ? num : "$" + num;
     }
 
 
