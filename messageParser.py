@@ -1,14 +1,20 @@
+from datetime import time
+import databaseAccess.py
+    
+
+def __calculate_time(start: time, end: time, lunch: float, drive: float=0):
+    pass
 
 
 
-def _is_valid_message(message: str):
+def parse_message(message: str) -> bool:
     # break the message apart into an array
     arr = message.split()
 
-    # check each element of the array to make sure it is valid
-    if arr[0]
+    # get the employee id or return False if they don't exist
+    id = databaseAccess._get_employee_id(arr[0], arr[1])
+    if not id:
+        return False
 
-
-
-def parseMessage(message: str):
-    
+    # get the start time, end time, break time, and drive time and
+    # calculate the time they worked that day to be store in the database
