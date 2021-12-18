@@ -8,6 +8,9 @@ from datetime import date
 from fastapi import FastAPI, Request, Form
 from pydantic import BaseModel
 
+# from . import databaseAccess
+from databaseAccess import insert_employee
+
 load_dotenv()
 account = os.environ.get('account_sid')
 token = os.environ.get('auth_token')
@@ -38,17 +41,12 @@ class SMS(BaseModel):
     Body: str
 
 
-@app.get("/")
-def read_root():
-    today = date.today()
-    return {"msg": f"Hello, Taylor.  Today is {today}"}
-
-
-@app.post("/sms")
-async def response(From: str = Form(...), Body: str = Form(...)) -> str:
-    print(f"Mesage from: {From}")
-    print(f"Body: {Body}")
-    pass
+# @app.post("/sms")
+# async def response(From: str = Form(...), Body: str = Form(...)) -> str:
+#     print(f"Mesage from: {From}")
+#     print(f"Body: {Body}")
+#     pass
     
+
 
 
