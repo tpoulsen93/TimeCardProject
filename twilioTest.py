@@ -8,7 +8,7 @@ from datetime import date
 from fastapi import FastAPI, Request, Form
 from pydantic import BaseModel
 
-# from . import databaseAccess
+from twilio.twiml.messaging_response import MessagingResponse
 from databaseAccess import insert_employee
 
 load_dotenv()
@@ -17,6 +17,10 @@ token = os.environ.get('auth_token')
 
 app = FastAPI()
 
+users = {
+    "+12083500006": "Taylor Poulsen",
+    "+14322761331": "Daniel Bogden"
+}
 
 
 # client = Client(account_sid, auth_token)
@@ -30,22 +34,17 @@ app = FastAPI()
 
 # print(message.sid)
 
-users = {
-    "+12083500006": "Taylor Poulsen",
-    "+14322761331": "Daniel Bogden"
-}
 
+@app.post("/sms")
+async def response(From: str = Form(...), Body: str = Form(...)) -> str:
+    print(f"Mesage from: {From}")
+    print(f"Body: {Body}")
 
-class SMS(BaseModel):
-    From: str
-    Body: str
+    
 
-
-# @app.post("/sms")
-# async def response(From: str = Form(...), Body: str = Form(...)) -> str:
-#     print(f"Mesage from: {From}")
-#     print(f"Body: {Body}")
-#     pass
+    response = MessagingResponse()
+    response.message(f"Thank you {From}, your hours have been logged.")
+    return response
     
 
 
