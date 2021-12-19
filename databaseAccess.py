@@ -46,6 +46,7 @@ def _get_employee_id(first: str, last: str):
         .first()
 
     return record.id if record != None else False
+    
 
 def insert_employee(first_name=None, last_name=None, wage=None, phone_number=None, email=None):
     stmt = insert(employees).values(first_name=first_name, last_name=last_name, wage=wage, \
