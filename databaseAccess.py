@@ -28,7 +28,8 @@ employees = Table(
 payroll = Table(
     'payroll', meta,
     Column('id', ForeignKey('employees.id')),
-    Column('time', Integer),
+    Column('time', Float),
+    Column('draw', Float),
     Column('date', Date, primary_key=True),
     Column('msg', String)
 )
@@ -60,10 +61,6 @@ def insert_employee(first_name=None, last_name=None, wage=None, phone_number=Non
 
     with engine.connect() as conn:
         conn.execute(stmt)
-
-
-def _is_employee():
-    pass
 
 
 if __name__ == "__main__":

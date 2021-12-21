@@ -3,14 +3,9 @@ import databaseAccess
 
 # calculate hours for the day and return them. return error string if necessary
 def calculate_time(start: str, end: str, less: float, more: float=0):
-    errors = []
-
     # length of times should be 6 or 7  -->  00:00xm or 0:00xm
-    if len(start) < 6 or len(start) > 7:
-        errors.append("Clock-in time formatted incorrectly")
-    if len(end) < 6 or len(end) > 7:
-        errors.append("Clock-out time formatted incorrectly")
-
+    if len(start) < 6 or len(start) > 7 or len(end) < 6 or len(end) > 7:
+        return False
 
     # build clock-in time
     arr = start.split(":")
@@ -18,34 +13,22 @@ def calculate_time(start: str, end: str, less: float, more: float=0):
     # validate the start hours and meridiem
     startHours = int(arr[0])
     if startHours < 1 or startHours > 12:
-        errors.append("Clock-in hours out of bounds")
-        startHourGood = False
-    else:
-        startHourGood = True
-        if arr[1].endswith("am"):
-            arr[1] = arr[1].replace("am", "")
-            startMeridiemGood = True
-        elif arr[1].endswith("pm"):
-            startHours += 12
-            arr[1] = arr[1].replace("pm", "")
-            startMeridiemGood = True
-        else: # neither am nor pm detected
-            errors.append("Clock-in missing am/pm")
-            startMeridiemGood = False
+        return False
+
+    if arr[1].endswith("am"):
+        arr[1] = arr[1].replace("am", "")
+    elif arr[1].endswith("pm"):
+        startHours += 12
+        arr[1] = arr[1].replace("pm", "")
+    else: # neither am nor pm detected
+        return False
 
     # validate the start minutes
     startMinutes = int(arr[1])
     if startMinutes < 0 or startMinutes > 59:
-        errors.append("Clock-in minutes out of bounds")
-        startMinuteGood = False
-    else:
-        startMinuteGood = True
+        return False
 
-    if startHourGood and startMinuteGood and startMeridiemGood:
-        startTime = timedelta(hours=startHours, minutes=startMinutes)
-        startTimeGood = True
-    else:
-        startTimeGood = False
+    startTime = timedelta(hours=startHours, minutes=startMinutes)
 
 
     # build clock-out time
@@ -54,46 +37,31 @@ def calculate_time(start: str, end: str, less: float, more: float=0):
     # validate end hours and meridiem
     endHours = int(arr[0])
     if endHours < 1 or endHours > 12:
-        errors.append("end hour out of bounds")
-        endHourGood = False
-    else:
-        endHourGood = True
-        if arr[1].endswith("am"):
-            arr[1] = arr[1].replace("am", "")
-            endMeridiemGood = True
-        elif arr[1].endswith("pm"):
-            endHours += 12
-            arr[1] = arr[1].replace("pm", "")
-            endMeridiemGood = True
-        else: # neither am nor pm detected
-            errors.append("end time missing am/pm")
-            endMeridiemGood = False
+        return False
+
+    if arr[1].endswith("am"):
+        arr[1] = arr[1].replace("am", "")
+    elif arr[1].endswith("pm"):
+        endHours += 12
+        arr[1] = arr[1].replace("pm", "")
+    else: # neither am nor pm detected
+        return False
 
     # validate end minutes
     endMinutes = int(arr[1])
     if endMinutes < 0 or endMinutes > 59:
-        errors.append("end minutes out of bounds")
-        endMinuteGood = False
-    else:
-        endMinuteGood = True
+        return False
 
-    if endHourGood and endMinuteGood and endMeridiemGood:
-        endTime = timedelta(hours=endHours, minutes=endMinutes)
-        endTimeGood = True
-    else:
-        endTimeGood = False
+    endTime = timedelta(hours=endHours, minutes=endMinutes)
+
 
     # compute hours for the day and return as a float rounded to 2 decimal places
-    if startTimeGood and endTimeGood:
-        if endTime < startTime:
-            errors.append("End time is earlier than start time")
-        else:
-            hours = endTime - startTime - timedelta(hours=less) + timedelta(hours=more)
-
-    if len(errors) == 0:
-        return round(hours / timedelta(hours=1), 2)
+    if endTime < startTime:
+        return False
     else:
-        return errors
+        hours = endTime - startTime - timedelta(hours=less) + timedelta(hours=more)
+
+    return round(hours / timedelta(hours=1), 2)
 
 
 
@@ -101,16 +69,32 @@ def process_message(message: str) -> bool:
     # break the message apart into an array
     mess = message.split()
 
-    # get the employee id or return False if they don't exist
-    id = databaseAccess._get_employee_id(mess[0], mess[1])
-    if not id:
-        return False
-
-    # check if this is a submission for hours or a draw
-    if mess[2] == "time":
-        # get the start time, end time, break time, and drive time and
-        # calculate the time they worked that day to be store in the database
+    # handle a time submission
+    if mess[0] == "time":
+        # get the employee id or return False if they don't exist
+        employeeId = databaseAccess.get_employee_id(mess[1], mess[2])
+        if not employeeId:
+            return False
+        
+        # get the start time, end time, break time, and drive time
+        # and calculate the hours to be store in the database
         time = calculate_time(mess[3], mess[4], mess[5], mess[6])
-    elif mess[2] == "draw":
+        
+        # check if we got errors or if we got hours
+        if type(time) is float:
+            databaseAccess.insert_time(employeeId, time, message)
+
+    # handle a draw submission
+    elif mess[0] == "draw":
         # submit a draw
         pass
+
+    # ignore the message because it isn't meant for us
+    else:
+        return True
+
+    
+
+    
+
+    
