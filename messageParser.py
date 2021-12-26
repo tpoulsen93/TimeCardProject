@@ -1,11 +1,15 @@
-from datetime import timedelta
-import databaseAccess
 
-# calculate hours for the day and return them. return error string if necessary
-def calculate_time(start: str, end: str, less: float, more: float=0):
+from datetime import timedelta
+from sqlalchemy.sql.sqltypes import String
+import databaseAccess
+import exceptions
+
+
+# calculate hours for the day and return them
+def calculate_time(start: str, end: str, less: str, more: str = "") -> float:
     # length of times should be 6 or 7  -->  00:00xm or 0:00xm
     if len(start) < 6 or len(start) > 7 or len(end) < 6 or len(end) > 7:
-        return False
+        raise exceptions.TimeFormatException
 
     # build clock-in time
     arr = start.split(":")
@@ -13,7 +17,7 @@ def calculate_time(start: str, end: str, less: float, more: float=0):
     # validate the start hours and meridiem
     startHours = int(arr[0])
     if startHours < 1 or startHours > 12:
-        return False
+        raise exceptions.HoursException
 
     if arr[1].endswith("am"):
         arr[1] = arr[1].replace("am", "")
@@ -21,12 +25,12 @@ def calculate_time(start: str, end: str, less: float, more: float=0):
         startHours += 12
         arr[1] = arr[1].replace("pm", "")
     else: # neither am nor pm detected
-        return False
+        raise exceptions.MeridiemException
 
     # validate the start minutes
     startMinutes = int(arr[1])
     if startMinutes < 0 or startMinutes > 59:
-        return False
+        raise exceptions.MinutesException
 
     startTime = timedelta(hours=startHours, minutes=startMinutes)
 
@@ -37,7 +41,7 @@ def calculate_time(start: str, end: str, less: float, more: float=0):
     # validate end hours and meridiem
     endHours = int(arr[0])
     if endHours < 1 or endHours > 12:
-        return False
+        raise exceptions.HoursException
 
     if arr[1].endswith("am"):
         arr[1] = arr[1].replace("am", "")
@@ -45,23 +49,67 @@ def calculate_time(start: str, end: str, less: float, more: float=0):
         endHours += 12
         arr[1] = arr[1].replace("pm", "")
     else: # neither am nor pm detected
-        return False
+        raise exceptions.MeridiemException
 
     # validate end minutes
     endMinutes = int(arr[1])
     if endMinutes < 0 or endMinutes > 59:
-        return False
+        raise exceptions.MinutesException
 
     endTime = timedelta(hours=endHours, minutes=endMinutes)
 
+    # check for any other exceptions in the message
+    if endTime < startTime:
+        raise exceptions.IllegalTimeException
+    
+    try:
+        subtract = float(less)
+    except:
+        raise exceptions.LunchException
+    
+    try:
+        add = float(more)
+    except:
+        raise exceptions.ExtraException
 
     # compute hours for the day and return as a float rounded to 2 decimal places
-    if endTime < startTime:
-        return False
-    else:
-        hours = endTime - startTime - timedelta(hours=less) + timedelta(hours=more)
-
+    hours = endTime - startTime - timedelta(hours=subtract) + timedelta(hours=add)
     return round(hours / timedelta(hours=1), 2)
+
+
+def process_time(message: str):
+    mess = message.split()
+
+    # get the employee id
+    employeeId = databaseAccess.get_employee_id(mess[1], mess[2])
+    if not employeeId:
+        raise exceptions.NoSuchUserException
+    
+    # get the start time, end time, break time, and drive time
+    # and calculate the hours to be stored in the database
+    time = calculate_time(mess[3], mess[4], mess[5], mess[6])
+
+    # add the hours to the database
+    databaseAccess.insert_time(employeeId, time, message)
+
+
+def process_draw(message: str):
+    mess = message.split()
+
+    # get the employee id or return False if they don't exist
+    employeeId = databaseAccess.get_employee_id(mess[1], mess[2])
+    if not employeeId:
+        raise exceptions.NoSuchUserException
+
+    if "$" in mess[3]:
+        mess[3].replace("$", "")
+
+    try: # cast the dollar amount to a float    
+        draw = float(mess[3])
+    except:
+        raise exceptions.DrawException
+
+    databaseAccess.insert_draw(employeeId, draw, message)
 
 
 
@@ -71,30 +119,16 @@ def process_message(message: str) -> bool:
 
     # handle a time submission
     if mess[0] == "time":
-        # get the employee id or return False if they don't exist
-        employeeId = databaseAccess.get_employee_id(mess[1], mess[2])
-        if not employeeId:
-            return False
-        
-        # get the start time, end time, break time, and drive time
-        # and calculate the hours to be store in the database
-        time = calculate_time(mess[3], mess[4], mess[5], mess[6])
-        
-        # check if we got errors or if we got hours
-        if type(time) is float:
-            databaseAccess.insert_time(employeeId, time, message)
+        process_time(message)
+        return True
 
     # handle a draw submission
     elif mess[0] == "draw":
-        # submit a draw
-        pass
+        process_draw(mess)
+        return True
 
     # ignore the message because it isn't meant for us
     else:
-        return True
-
-    
-
-    
+        return False
 
     

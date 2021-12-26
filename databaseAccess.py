@@ -1,5 +1,6 @@
 import json
 import os
+from typing_extensions import Required
 from sqlalchemy.sql.expression import false
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.sql.sqltypes import Date
@@ -17,7 +18,7 @@ meta = MetaData()
 
 employees = Table(
     'employees', meta, 
-    Column('id', Integer, autoincrement=True, unique=True, primary_key=True),
+    Column('id', Integer, autoincrement=True, primary_key=True),
     Column('first_name', String),
     Column('last_name', String),
     Column('wage', Float),
@@ -30,7 +31,7 @@ payroll = Table(
     Column('id', ForeignKey('employees.id')),
     Column('time', Float),
     Column('draw', Float),
-    Column('date', Date, primary_key=True),
+    Column('date', Date),
     Column('msg', String)
 )
 
@@ -39,6 +40,12 @@ meta.create_all(engine)
 
 def insert_time(id, time, msg):
     stmt = insert(payroll).values(id=id, time=time, date=date.today(), msg=msg)
+
+    with engine.connect() as conn:
+        conn.execute(stmt)
+
+def insert_draw(id, amount, msg);
+    stmt = insert(payroll).values(id=id, draw=amount, date=date.today(), msg=msg)
 
     with engine.connect() as conn:
         conn.execute(stmt)
