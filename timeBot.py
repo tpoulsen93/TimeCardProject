@@ -9,7 +9,10 @@ from fastapi import FastAPI, Request, Form
 from pydantic import BaseModel
 
 from twilio.twiml.messaging_response import MessagingResponse
-from databaseAccess import insert_employee
+
+import databaseAccess
+import exceptions
+import messageParser
 
 load_dotenv()
 account = os.environ.get('account_sid')
@@ -39,6 +42,13 @@ users = {
 async def response(From: str = Form(...), Body: str = Form(...)) -> str:
     print(f"Mesage from: {From}")
     print(f"Body: {Body}")
+
+    try:
+        print(messageParser.process_message(Body))    
+    except exceptions.DrawException:
+        print("Draw formatted incorrectly")
+    except:
+        print("there was an exception")
 
     
 

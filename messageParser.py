@@ -77,11 +77,11 @@ def calculate_time(start: str, end: str, less: str, more: str = "") -> float:
     return round(hours / timedelta(hours=1), 2)
 
 
-def process_time(message: str):
+def process_time(message: str) -> str:
     mess = message.split()
 
     # get the employee id
-    employeeId = databaseAccess.get_employee_id(mess[1], mess[2])
+    employeeId = databaseAccess.get_employee_id(mess[1].lower(), mess[2].lower())
     if not employeeId:
         raise exceptions.NoSuchUserException
     
@@ -89,15 +89,16 @@ def process_time(message: str):
     # and calculate the hours to be stored in the database
     time = calculate_time(mess[3], mess[4], mess[5], mess[6])
 
-    # add the hours to the database
+    # add the hours to the database and return the message to be texted back
     databaseAccess.insert_time(employeeId, time, message)
+    return str(time) + " hours were submitted for " + mess[1].title() + " " + mess[2].title()
 
 
-def process_draw(message: str):
+def process_draw(message: str) -> str:
     mess = message.split()
 
     # get the employee id or return False if they don't exist
-    employeeId = databaseAccess.get_employee_id(mess[1], mess[2])
+    employeeId = databaseAccess.get_employee_id(mess[1].lower(), mess[2].lower())
     if not employeeId:
         raise exceptions.NoSuchUserException
 
@@ -109,23 +110,23 @@ def process_draw(message: str):
     except:
         raise exceptions.DrawException
 
+    # add the draw to the database and return the message to be texted back
     databaseAccess.insert_draw(employeeId, draw, message)
+    return "A $" + str(draw) + " draw was submitted for " + mess[1].title() + " " + mess[2].title()
 
 
 
-def process_message(message: str) -> bool:
+def process_message(message: str):
     # break the message apart into an array
     mess = message.split()
 
     # handle a time submission
-    if mess[0] == "time":
-        process_time(message)
-        return True
+    if mess[0].lower() == "time":
+        return process_time(message)
 
     # handle a draw submission
-    elif mess[0] == "draw":
-        process_draw(mess)
-        return True
+    elif mess[0].lower() == "draw":
+        return process_draw(mess)
 
     # ignore the message because it isn't meant for us
     else:
